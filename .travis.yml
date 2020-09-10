@@ -1,0 +1,11 @@
+arch: 
+  - ppc64le
+sudo: required
+services:
+  - docker
+
+script:
+  - ls -l /
+  - docker run -t ubuntu:18.04 bash -c 'apt update -y && apt install -y git'
+  - docker run --privileged -t ubuntu:18.04 bash -c 'apt update -y && apt install -y git'
+  - docker ps -a
