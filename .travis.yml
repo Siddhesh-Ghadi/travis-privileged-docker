@@ -6,6 +6,6 @@ services:
 
 script:
   - ls -l /
-  - docker run -t ubuntu:18.04 bash -c 'apt update -y && apt install -y git'
-  - docker run --privileged -t ubuntu:18.04 bash -c 'apt update -y && apt install -y git'
+  - docker run -t ubuntu:18.04 bash -c 'ls -l /'
+  - docker run --privileged -t ubuntu:18.04 bash -c 'ls -l /'
   - docker ps -a
