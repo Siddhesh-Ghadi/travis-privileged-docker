@@ -1,6 +1,8 @@
 arch: 
   - ppc64le
-sudo: required
+  - s390x
+  - arm64
+  
 services:
   - docker
 
