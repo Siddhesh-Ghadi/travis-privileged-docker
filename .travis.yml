@@ -1,13 +1,22 @@
 arch: 
+  - amd64
   - ppc64le
   - s390x
   - arm64
-  
+
+job:
+  include:
+    - arch: amd64
+    - arch: ppc64le
+    - arch: s390x
+    - arch: arm64
+    - os: linux-ppc64le
+
 services:
   - docker
 
 script:
-  - ls -l /
+  - arch
   - docker run -t ubuntu:18.04 bash -c 'ls -l /'
   - docker run --privileged -t ubuntu:18.04 bash -c 'ls -l /'
   - docker ps -a
