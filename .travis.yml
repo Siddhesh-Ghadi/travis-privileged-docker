@@ -7,10 +7,15 @@ arch:
 job:
   include:
     - arch: amd64
+      env: TYPE=VM
     - arch: ppc64le
+      env: TYPE=LXD
     - arch: s390x
+      env: TYPE=LXD
     - arch: arm64
+      env: TYPE=LXD
     - os: linux-ppc64le
+      env: TYPE=VM
 
 services:
   - docker
