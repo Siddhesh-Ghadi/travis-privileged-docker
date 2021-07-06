@@ -1,21 +1,74 @@
-job:
-  include:
-    - arch: amd64
-      env: TYPE=VM
-    - arch: ppc64le
-      env: TYPE=LXD
-    - arch: s390x
-      env: TYPE=LXD
-    - arch: arm64
-      env: TYPE=LXD
-    - os: linux-ppc64le
-      env: TYPE=VM
-
+dist: bionic
+language: go
+sudo: required
 services:
   - docker
-
-script:
-  - arch
-  - docker run -t ubuntu:18.04 bash -c 'ls -l /'
-  - docker run --privileged -t ubuntu:18.04 bash -c 'ls -l /'
-  - docker ps -a
+go:
+  - 1.16.4
+install:
+  - sudo curl -L https://github.com/operator-framework/operator-sdk/releases/download/v1.8.0/operator-sdk_linux_$TRAVIS_ARCH -o /usr/local/bin/operator-sdk-v1.8.0
+  - sudo chmod +x /usr/local/bin/operator-sdk-v1.8.0
+  - sudo curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+  - |
+    if [ "$TRAVIS_ARCH" == "amd64" ]
+    then
+      sudo add-apt-repository -y ppa:rmescandon/yq
+      sudo apt-get update
+      sudo apt-get install bc yq -y
+    else
+      sudo apt-get install bc -y
+      wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_ppc64le
+      chmod +x yq_linux_ppc64le
+      sudo mv yq_linux_ppc64le /usr/local/bin/yq
+    fi
+  - |
+    if [ "$TRAVIS_ARCH" == "amd64" ]
+    then
+      sudo wget https://github.com/openshift/okd/releases/download/4.6.0-0.okd-2020-11-27-200126/openshift-client-linux-4.6.0-0.okd-2020-11-27-200126.tar.gz
+      sudo tar -zxvf openshift-client-linux-4.6.0-0.okd-2020-11-27-200126.tar.gz
+    else
+      curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/4.6/linux-ppc64le/oc.tar.gz > oc.tar.gz
+      tar -xvf oc.tar.gz
+    fi
+  - sudo mv oc /usr/local/bin/oc
+  - sudo chmod +x /usr/local/bin/oc
+  - sudo wget -O /usr/local/bin/kubectl https://dl.k8s.io/release/v1.21.0/bin/linux/$TRAVIS_ARCH/kubectl
+  - sudo chmod +x /usr/local/bin/kubectl
+  - sudo wget https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.1/kubebuilder_2.3.1_linux_$TRAVIS_ARCH.tar.gz
+  - sudo tar -zxvf  kubebuilder_2.3.1_linux_$TRAVIS_ARCH.tar.gz
+  - sudo mv kubebuilder_2.3.1_linux_$TRAVIS_ARCH/bin/kubebuilder /usr/local/bin/kubebuilder
+  - sudo chmod +x /usr/local/bin/kubebuilder
+  - |
+    if [ "$TRAVIS_ARCH" == "amd64" ]
+    then
+      sudo wget https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz
+      sudo tar -zxvf  kustomize_v3.8.7_linux_amd64.tar.gz
+    else
+      GO111MODULE=on GOBIN=$PWD go get sigs.k8s.io/kustomize/kustomize/v3@v3.8.7
+    fi
+  - sudo mv kustomize /usr/local/bin/kustomize
+  - sudo chmod +x /usr/local/bin/kustomize
+  - |
+    export OC_API_SERVER=$OC_API_SERVER_PPC64LE
+  - env
+  - docker version
+  - operator-sdk-v1.8.0 version
+  - kubectl version --client=true
+  - $(go env GOPATH)/bin/golangci-lint version
+  - kubebuilder version
+  - kustomize version
+  - oc version --client
+  - yq -V
+  - bc -v
+  #- getLinter --version latest
+jobs:
+  fast_finish: true
+  include:
+    - script:
+        - echo 'amd'
+      env: JOB=amd
+      os: linux
+    - script:
+        - echo 'ppc64le'
+      env: JOB=ppc64le
+      arch: ppc64le
