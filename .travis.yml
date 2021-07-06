@@ -50,6 +50,8 @@ install:
   - sudo chmod +x /usr/local/bin/kustomize
   - |
     export OC_API_SERVER=$OC_API_SERVER_PPC64LE
+    echo $OC_API_SERVER
+  - echo $OC_API_SERVER
   - env
   - docker version
   - operator-sdk-v1.8.0 version
